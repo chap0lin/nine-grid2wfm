@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    *{
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body{
+      display: flex;
+      gap: 20px;
+    }
+    h1{
+      margin:0;
+      margin-bottom: 20px;
+    }
+    body>div{
+      background: #eee;
+      border: 2px solid rgba();
+      padding: 20px;
+    }
+    .nine-grid-container{
+      width: 150px;
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .nine-grid-container input{
+      width: 50px;
+      height: 50px;
+      box-sizing: border-box;
+      border: 1px solid black;
+    }
+    #wfm{
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+    #show{
+      margin-top: 20px;
+    }
+    td{
+      width: 30px;
+      border: 1px solid black;
+    }
+    td:first-child{
+      border: 0;
+      font-weight: bold;
+    }
+    table{
+      border-collapse: collapse;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <h1>Nine-grid to Word Frequency Matrix</h1>
+    <div class="nine-grid-container">
+      <input class="nine-grid-input" value="一" />
+      <input class="nine-grid-input" value="二" />
+      <input class="nine-grid-input" value="三" />
+      <input class="nine-grid-input" value="四" />
+      <input class="nine-grid-input" value="五" />
+      <input class="nine-grid-input" value="六" />
+      <input class="nine-grid-input" value="七" />
+      <input class="nine-grid-input" value="八" />
+      <input class="nine-grid-input" value="九" /> 
+    </div>
+    <button id="wfm">Gerar WFM</button>
+    <div id="wfm-table"></div>
+  </div>
+  <div>
+    <h1>Consult Pair Frequency</h1>
+    <input id="test" type="text">
+    <button id="show">VerValor</button>
+    <h2 id="pairFrequency"></h2>
+  </div>
+  
+  <script>
+    var txtFile = new XMLHttpRequest();
+    txtFile.open("GET", "word_x_freq.csv");
+    let data = {}
+    txtFile.onload = function()
+    {
+        let allText = txtFile.responseText;
+        let rows = allText.split("\n");
+        rows.forEach(item => {
+          let row = item.split(';')
+          if(row[0].length>1){
+            let y = data[`${row[0].slice(0,1)}`]?data[`${row[0].slice(0,1)}`]:{}
+            y[`${row[0].slice(1)}`] = row[1]
+            data[`${row[0].slice(0,1)}`] = y
+          }else{
+            let y = {"": row[1] }
+            data[`${row[0]}`] =  y
+          }
+        })
+
+        console.log(data)
+    };
+    txtFile.send()
+
+    document.getElementById('show').addEventListener('click', ()=>{
+      let value = document.getElementById('test').value
+      if(value.length == 1)
+        document.getElementById('pairFrequency').innerText = data[`${value}`]['']
+      else if(value.length > 1)
+        document.getElementById('pairFrequency').innerText = data[`${value.slice(0,1)}`][`${value.slice(1)}`]?data[`${value.slice(0,1)}`][`${value.slice(1)}`]:'0'
+      else
+        document.getElementById('pairFrequency').innerText = '0'
+    })
+
+  </script>
+  <script>
+    function CreateWFM(){
+      //get values
+      console.log(data)
+      let has = document.getElementById('mytable')
+      if(has)
+        has.remove()
+      
+      let vocabulary = document.querySelectorAll('.nine-grid-input')
+      
+      let table = document.createElement('table')
+      table.id = 'mytable'
+
+      let header = document.createElement('tr')
+      let beginning = document.createElement('th')
+      header.appendChild(beginning)
+      vocabulary.forEach(item => {
+        let col = document.createElement('th')
+        col.innerText = item.value
+        header.appendChild(col)
+      })
+      table.appendChild(header)
+
+      vocabulary.forEach(x => {
+        let row = document.createElement('tr')
+        let beginning = document.createElement('td')
+        beginning.innerText = x.value
+        row.appendChild(beginning)
+        vocabulary.forEach(y => {
+          let col = document.createElement('td')
+          if(data[`${x.value}`]){
+            col.innerText = data[`${x.value}`][`${y.value}`]?data[`${x.value}`][`${y.value}`]:'0'
+          }else{
+            col.innerText = '0'
+          }
+          row.appendChild(col)
+        })
+        table.appendChild(row)
+      })
+
+
+      document.getElementById('wfm-table').appendChild(table)
+
+    }
+    document.getElementById('wfm').addEventListener('click', () => {
+      CreateWFM()
+    })
+  </script>
+</body>
+</html>
